@@ -1,0 +1,27 @@
+name: Hero CI (static)
+
+on:
+  push:
+    branches: [ "mainer" ]
+  pull_request:
+    branches: [ "mainer" ]
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: 確認 index.html 存在
+        run: |
+          test -f site/index.html || (echo "找不到 site/index.html"; exit 1)
+
+      - name: HTML 語法檢查
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y tidy
+          tidy -qe site/index.html
