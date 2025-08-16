@@ -1,5 +1,4 @@
 name: Deploy to GitHub Pages
-
 on:
   push:
     branches: [ "mainer" ]
@@ -16,8 +15,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: 上傳 site 作為部署產物
+      - name: Upload site as artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: site
@@ -28,6 +26,6 @@ jobs:
     environment:
       name: github-pages
     steps:
-      - name: 部署到 Pages
+      - name: Deploy to Pages
         id: deploy
         uses: actions/deploy-pages@v4
