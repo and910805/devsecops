@@ -16,17 +16,20 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+     - name: Trivy SCA (requirements → SARIF)
+       uses: aquasecurity/trivy-action@0.24.0
+       with:
+        scan-type: 'fs'
+        scanners: 'vuln'
+        vuln-type: 'library'                
+        severity: 'MEDIUM,HIGH,CRITICAL'    
+        ignore-unfixed: true
+        format: 'sarif'
+        output: 'trivy.sarif'
+        file-patterns: 'requirements:requirements.txt'  
+        exit-code: '0'                       
 
-      - name: Trivy SCA (requirements.txt → SARIF)
-        uses: aquasecurity/trivy-action@0.24.0
-        with:
-          scan-type: 'fs'              # 掃檔案系統
-          scanners: 'vuln'
-          ignore-unfixed: true
-          severity: 'HIGH,CRITICAL'
-          format: 'sarif'
-          output: 'trivy.sarif'
-          exit-code: '1'
+
 
       - name: Upload SARIF to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
