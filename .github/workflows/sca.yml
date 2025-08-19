@@ -27,6 +27,7 @@ jobs:
         uses: aquasecurity/trivy-action@0.24.0
         with:
           scan-type: 'fs'
+          scan-ref: './requirements.txt'
           scanners: 'vuln'
           vuln-type: 'library'
           list-all-pkgs: true
@@ -34,7 +35,6 @@ jobs:
           ignore-unfixed: true
           format: 'sarif'
           output: 'trivy.sarif'
-          file-patterns: 'requirements:requirements.txt'
           limit-severities-for-sarif: true
           exit-code: '0'   # 教學先不擋；要卡 PR 改 '1'
 
