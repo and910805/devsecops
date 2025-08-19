@@ -16,22 +16,30 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Trivy SCA (requirements → SARIF)
         uses: aquasecurity/trivy-action@0.24.0
         with:
-         scan-type: 'fs'
-         scanners: 'vuln'
-         vuln-type: 'library'                
-         severity: 'MEDIUM,HIGH,CRITICAL'    
-         ignore-unfixed: true
-         format: 'sarif'
-         output: 'trivy.sarif'
-         file-patterns: 'requirements:requirements.txt'  
-         exit-code: '0'                       
+          scan-type: 'fs'
+          scanners: 'vuln'
+          vuln-type: 'library'
+          list-all-pkgs: true
+          severity: 'MEDIUM,HIGH,CRITICAL'
+          ignore-unfixed: true
+          format: 'sarif'
+          output: 'trivy.sarif'
+          file-patterns: 'requirements:requirements.txt'
+          limit-severities-for-sarif: true
+          exit-code: '0'   # 教學階段先不擋；要卡 PR 改成 '1'
+      - name: Install Trivy CLI
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y wget
+          wget -qO trivy.deb https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.55.0_Linux-64bit.deb
+          sudo dpkg -i trivy.deb
 
       - name: Debug – list detected packages
         run: trivy fs --scanners vuln --vuln-type library --list-all-pkgs .
-
 
       - name: Upload SARIF to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
