@@ -11,7 +11,10 @@
 
   <p>這頁面 <strong>故意有洞</strong>，方便 SAST 工具（Semgrep）掃出來。</p>
   <ul>
-    <li>Query 參數：<code>?name=...&next=...&code=...&x=...</code></li>
+    <li>Query 參數：
+		<code>?name=&lt;img src=x onerror=alert(1)&gt;&amp;next=...&amp;code=...&amp;x=...</code>
+	</li>
+
     <li>Hash：<code>#&lt;img src=x onerror=alert(1)&gt;</code></li>
   </ul>
 
