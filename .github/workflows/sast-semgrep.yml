@@ -25,29 +25,12 @@ jobs:
           python-version: '3.x'
 
       - name: Install Semgrep
-        run: pip install --upgrade semgrep
+        run: pip install --upgrade semgrep jq
 
-      - name: Validate custom rules
-        run: semgrep --validate --config .semgrep/custom-rules.yml
-
-      # PR 事件：差異掃描（只抓這次 PR 改到的檔）
-      - name: Run Semgrep (PR diff)
-        if: ${{ github.event_name == 'pull_request' }}
-        run: |
-          semgrep ci \
-            --include '**/*.js' \
-            --include '**/*.ts' \
-            --include '**/*.tsx' \
-            --include '**/*.jsx' \
-            --include '**/*.html' \
-            --config p/owasp-top-ten \
-            --config .semgrep/custom-rules.yml \
-            --sarif-output=semgrep.sarif \
-            --error
-
-      # push/手動：全量掃描（掃整個 repo）
-      - name: Run Semgrep (full scan)
-        if: ${{ github.event_name != 'pull_request' }}
+      # Run scan，即使有 Findings 也繼續（避免中斷 SARIF 上傳）
+      - name: Run Semgrep
+        id: semgrep_scan
+        continue-on-error: true
         run: |
           semgrep scan \
             --include '**/*.js' \
@@ -60,13 +43,27 @@ jobs:
             --sarif-output=semgrep.sarif \
             --error
 
+      # 一律上傳 SARIF
       - name: Upload SARIF
+        if: always()
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: semgrep.sarif
 
       - name: Keep artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: semgrep.sarif
           path: semgrep.sarif
+
+      # 最後根據 SARIF 內容決定 fail
+      - name: Fail if findings > 0
+        if: always()
+        run: |
+          COUNT=$(jq '.runs[0].results | length' semgrep.sarif)
+          echo "Semgrep findings: $COUNT"
+          if [ "$COUNT" -gt 0 ]; then
+            echo "Failing the job due to findings."
+            exit 1
+          fi

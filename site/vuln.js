@@ -48,3 +48,5 @@ const ext = qs.get("ext");
 if (ext) {
   window.open(ext, "_blank"); // e.g., ?ext=https://example.com
 }
+
+//test
