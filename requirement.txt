@@ -1,3 +1,5 @@
-flask==0.12
-requests==2.19.0
-django==2.0
+flask==0.12        # 已知 RCE / XSS 漏洞，Trivy 一定會抓
+requests==2.19.0   # 多個 GHSA / CVE，Trivy 一定會抓
+django==2.0        # SQLi / XSS / 權限繞過漏洞
+urllib3==1.23      # 多個 CVE，SSL 驗證問題
+idna==2.7          # Trivy 也有漏洞紀錄
