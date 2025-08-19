@@ -27,27 +27,29 @@ jobs:
       - name: Install Semgrep
         run: pip install --upgrade semgrep
 
-      # PR 事件：差異掃描（會自動用 base/head）
+
+        # PR
       - name: Run Semgrep (PR diff)
         if: ${{ github.event_name == 'pull_request' }}
         run: |
-          semgrep ci \
-            --include '**/*.html' \
-            --config p/owasp-top-ten \
-            --config .semgrep/custom-rules.yml \
-            --sarif-output=semgrep.sarif \
-            --error
+            semgrep ci \
+                --include '**/*.{js,ts,tsx,jsx,html}' \
+                --config p/owasp-top-ten \
+                --config .semgrep/custom-rules.yml \
+                --sarif-output=semgrep.sarif \
+                --error
 
-      # push/手動：全量掃描
+    # push/full
       - name: Run Semgrep (full scan)
         if: ${{ github.event_name != 'pull_request' }}
         run: |
-          semgrep scan \
-            --include '**/*.html' \
-            --config p/owasp-top-ten \
-            --config .semgrep/custom-rules.yml \
-            --sarif-output=semgrep.sarif \
-            --error
+            semgrep scan \
+                --include '**/*.{js,ts,tsx,jsx,html}' \
+                --config p/owasp-top-ten \
+                --config .semgrep/custom-rules.yml \
+                --sarif-output=semgrep.sarif \
+                --error
+
 
       - name: Upload SARIF
         uses: github/codeql-action/upload-sarif@v3
