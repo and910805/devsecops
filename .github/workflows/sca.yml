@@ -16,19 +16,21 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-     - name: Trivy SCA (requirements → SARIF)
-       uses: aquasecurity/trivy-action@0.24.0
-       with:
-        scan-type: 'fs'
-        scanners: 'vuln'
-        vuln-type: 'library'                
-        severity: 'MEDIUM,HIGH,CRITICAL'    
-        ignore-unfixed: true
-        format: 'sarif'
-        output: 'trivy.sarif'
-        file-patterns: 'requirements:requirements.txt'  
-        exit-code: '0'                       
+      - name: Trivy SCA (requirements → SARIF)
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+         scan-type: 'fs'
+         scanners: 'vuln'
+         vuln-type: 'library'                
+         severity: 'MEDIUM,HIGH,CRITICAL'    
+         ignore-unfixed: true
+         format: 'sarif'
+         output: 'trivy.sarif'
+         file-patterns: 'requirements:requirements.txt'  
+         exit-code: '0'                       
 
+      - name: Debug – list detected packages
+        run: trivy fs --scanners vuln --vuln-type library --list-all-pkgs .
 
 
       - name: Upload SARIF to GitHub Security tab
