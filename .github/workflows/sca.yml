@@ -27,7 +27,7 @@ jobs:
         uses: aquasecurity/trivy-action@0.24.0
         with:
           scan-type: fs
-          scan-ref: ./requirements.txt     # ✅ 指到檔案，不用 file-patterns
+          scan-ref: ./requirements.txt     # 
           scanners: vuln
           vuln-type: library
           severity: MEDIUM,HIGH,CRITICAL
@@ -46,10 +46,10 @@ jobs:
           scanners: vuln
           vuln-type: library
           severity: LOW,MEDIUM,HIGH,CRITICAL
-          ignore-unfixed: true
+          ignore-unfixed: false
           format: table
           output: '-'                      # 印在 log
-          hide-progress: true
+          
 
       # ③ 在 log 顯示找到幾個漏洞（從 SARIF 統計）
       - name: Count vulnerabilities
