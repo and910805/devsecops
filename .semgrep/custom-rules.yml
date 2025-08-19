@@ -2,30 +2,29 @@ rules:
   - id: html-dom-innerhtml
     message: "直接賦值 innerHTML 可能造成 XSS，請改用 textContent 或先消毒"
     severity: HIGH
-    languages: [generic, javascript, typescript]
+    languages: [regex, html]
     pattern-regex: (?i)\binnerHTML\s*=\s*
 
   - id: html-document-write
     message: "避免使用 document.write()，容易引入 XSS/不受控內容"
     severity: MEDIUM
-    languages: [generic, javascript, typescript]
+    languages: [regex, html]
     pattern-regex: \bdocument\.write\s*\(
 
   - id: html-eval-usage
     message: "避免 eval()，可能造成任意程式碼執行"
     severity: HIGH
-    languages: [generic, javascript, typescript]
+    languages: [regex, html]
     pattern-regex: \beval\s*\(
 
   - id: html-http-fetch
-    message: "以 HTTP 傳輸可能遭竊聽/竄改，請改用 HTTPS"
+    message: "HTTP 請求不安全，請改 HTTPS"
     severity: HIGH
-    languages: [generic, javascript, typescript]
+    languages: [regex, html]
     pattern-regex: fetch\s*\(\s*["']http://
 
   - id: html-window-open-noopener
     message: "window.open 需搭配 rel=noopener/noreferrer 以避免 tabnabbing"
     severity: MEDIUM
-    languages: [generic, javascript, typescript]
+    languages: [regex, html]
     pattern-regex: window\.open\s*\([^)]*"_blank"
- 
