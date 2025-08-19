@@ -27,29 +27,38 @@ jobs:
       - name: Install Semgrep
         run: pip install --upgrade semgrep
 
+      - name: Validate custom rules
+        run: semgrep --validate --config .semgrep/custom-rules.yml
 
-        # PR
+      # PR 事件：差異掃描（只抓這次 PR 改到的檔）
       - name: Run Semgrep (PR diff)
         if: ${{ github.event_name == 'pull_request' }}
         run: |
-            semgrep ci \
-                --include '**/*.{js,ts,tsx,jsx,html}' \
-                --config p/owasp-top-ten \
-                --config .semgrep/custom-rules.yml \
-                --sarif-output=semgrep.sarif \
-                --error
+          semgrep ci \
+            --include '**/*.js' \
+            --include '**/*.ts' \
+            --include '**/*.tsx' \
+            --include '**/*.jsx' \
+            --include '**/*.html' \
+            --config p/owasp-top-ten \
+            --config .semgrep/custom-rules.yml \
+            --sarif-output=semgrep.sarif \
+            --error
 
-    # push/full
+      # push/手動：全量掃描（掃整個 repo）
       - name: Run Semgrep (full scan)
         if: ${{ github.event_name != 'pull_request' }}
         run: |
-            semgrep scan \
-                --include '**/*.{js,ts,tsx,jsx,html}' \
-                --config p/owasp-top-ten \
-                --config .semgrep/custom-rules.yml \
-                --sarif-output=semgrep.sarif \
-                --error
-
+          semgrep scan \
+            --include '**/*.js' \
+            --include '**/*.ts' \
+            --include '**/*.tsx' \
+            --include '**/*.jsx' \
+            --include '**/*.html' \
+            --config p/owasp-top-ten \
+            --config .semgrep/custom-rules.yml \
+            --sarif-output=semgrep.sarif \
+            --error
 
       - name: Upload SARIF
         uses: github/codeql-action/upload-sarif@v3
