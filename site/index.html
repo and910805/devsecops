@@ -1,11 +1,85 @@
 ﻿<!doctype html>
 <html lang="zh-Hant">
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>英雄基地</title>
-  <body style="font-family: system-ui; padding: 2rem;">
-    <h1>Hero Base</h1>
-    <p>test：第一個頁面 </p>
-  </body>
+<head>
+  <meta charset="utf-8" />
+  <title>Day 6 - SAST Demo (Vulnerable)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>body{font-family:ui-sans-serif,system-ui;max-width:820px;margin:40px auto;padding:0 16px}</style>
+</head>
+<body>
+  <h1>SAST Demo - Vulnerable Page</h1>
+
+  <p>這頁面 <strong>故意有洞</strong>，方便 SAST 工具（Semgrep）掃出來。</p>
+  <ul>
+    <li>Query 參數：<code>?name=...&next=...&code=...&x=...</code></li>
+    <li>Hash：<code>#&lt;img src=x onerror=alert(1)&gt;</code></li>
+  </ul>
+
+  <h2>1) DOM XSS（innerHTML）</h2>
+  <div id="hello"></div>
+  <div id="hash"></div>
+
+  <h2>2) Open Redirect</h2>
+  <button onclick="go()">跳轉（讀取 ?next=...）</button>
+
+  <h2>3) HTTP 明文請求</h2>
+  <pre id="http"></pre>
+
+  <h2>4) 其他常見危險用法</h2>
+  <button onclick="renderUserHtml()">插入使用者提供的 HTML</button>
+  <div id="slot"></div>
+
+  <script>
+    // 將敏感資料放在 localStorage（示範）
+    localStorage.setItem("jwt", "header.payload.signature"); // SAST 應提醒不要在 localStorage 放 Token
+
+    // 以 JS 設定 Cookie（無 Secure/HttpOnly；HttpOnly 也無法由 JS 設）
+    document.cookie = "session=abc123; path=/";
+
+    const qs = new URLSearchParams(location.search);
+
+    // DOM XSS：直接把使用者輸入塞進 innerHTML
+    const name = qs.get("name") || "Guest";
+    document.getElementById("hello").innerHTML = `Hello, ${name}`; // <img src=x onerror=alert(1)>
+    
+    // DOM XSS：Hash 片段也直接注入
+    if (location.hash) {
+      document.getElementById("hash").innerHTML = "Hash says: " + location.hash.slice(1);
+    }
+
+    // Open Redirect：未驗證就導頁
+    function go() {
+      const next = qs.get("next");
+      if (next) location.href = next; // e.g., ?next=https://evil.example
+    }
+
+    // HTTP 明文請求 + 串連使用者輸入
+    const x = qs.get("x") || "demo";
+    fetch("http://httpbin.org/get?x=" + x) // 非 HTTPS、且未校驗
+      .then(r => r.text())
+      .then(t => document.getElementById("http").innerText = t)
+      .catch(e => console.log(e));
+
+    // 動態執行：eval
+    const code = qs.get("code");
+    if (code) {
+      // 例如：?code=alert(1)
+      eval(code); // 危險！任意 JS 執行
+    }
+
+    // 直接寫入整段 HTML
+    function renderUserHtml() {
+      const html = qs.get("html") || "<b>no user html</b>";
+      document.write(html); // SAST 應提示 document.write 風險
+      // 以及：
+      document.getElementById("slot").innerHTML = html;
+    }
+
+    // window.open 未加 rel=noopener（reverse tabnabbing 風險）
+    const ext = qs.get("ext");
+    if (ext) {
+      window.open(ext, "_blank"); // e.g., ?ext=https://example.com
+    }
+  </script>
+</body>
 </html>
-<!-- redeploy -->

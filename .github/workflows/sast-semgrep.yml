@@ -1,0 +1,58 @@
+name: SAST - Semgrep (HTML Demo)
+
+on:
+  pull_request:
+    branches: [ "main", "mainer" ]
+  push:
+    branches: [ "main", "mainer" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+  pull-requests: write
+
+jobs:
+  semgrep:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install Semgrep
+        run: pip install --upgrade semgrep
+
+      # PR 用差異掃描；push 用全量
+      - name: Run Semgrep (PR diff)
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          semgrep ci \
+            --config p/owasp-top-ten \
+            --config .semgrep/custom-rules.yml \
+            --sarif-output=semgrep.sarif \
+            --error
+
+      - name: Run Semgrep (full scan)
+        if: ${{ github.event_name != 'pull_request' }}
+        run: |
+          semgrep scan \
+            --config p/owasp-top-ten \
+            --config .semgrep/custom-rules.yml \
+            --sarif-output=semgrep.sarif \
+            --error
+
+      - name: Upload SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: semgrep.sarif
+
+      - name: Keep artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: semgrep.sarif
+          path: semgrep.sarif
