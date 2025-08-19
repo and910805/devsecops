@@ -14,45 +14,50 @@ jobs:
       contents: read
       security-events: write
     env:
-      # 換成 GHCR 鏡像，常比官方 S3 穩定
       TRIVY_DB_REPOSITORY: ghcr.io/aquasecurity/trivy-db:2
       TRIVY_JAVA_DB_REPOSITORY: ghcr.io/aquasecurity/trivy-java-db:1
       TRIVY_TIMEOUT: 5m
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # ① 產生 SARIF，上傳到 Security → Code scanning alerts
+      # ① 對 requirements.txt 產出 SARIF
       - name: Trivy SCA (requirements → SARIF)
         uses: aquasecurity/trivy-action@0.24.0
         with:
-          scan-type: 'fs'
-          scan-ref: './requirements.txt'
-          scanners: 'vuln'
-          vuln-type: 'library'
-          list-all-pkgs: true
-          severity: 'MEDIUM,HIGH,CRITICAL'
+          scan-type: fs
+          scan-ref: ./requirements.txt     # ✅ 指到檔案，不用 file-patterns
+          scanners: vuln
+          vuln-type: library
+          severity: MEDIUM,HIGH,CRITICAL
           ignore-unfixed: true
-          format: 'sarif'
-          output: 'trivy.sarif'
+          format: sarif
+          output: trivy.sarif
           limit-severities-for-sarif: true
-          exit-code: '0'   # 教學先不擋；要卡 PR 改 '1'
+          exit-code: '0'                   # 教學先不擋；要卡 PR 改 '1'
 
+      # ② 在 Log 印出表格（純查看）
       - name: Trivy SCA (table for debug)
         uses: aquasecurity/trivy-action@0.24.0
         with:
-          scan-type: 'fs'
-          scanners: 'vuln'
-          vuln-type: 'library'
-          list-all-pkgs: true
-          severity: 'LOW,MEDIUM,HIGH,CRITICAL'
+          scan-type: fs
+          scan-ref: ./requirements.txt     # ✅ 同樣限定檔案
+          scanners: vuln
+          vuln-type: library
+          severity: LOW,MEDIUM,HIGH,CRITICAL
           ignore-unfixed: true
-          format: 'table'
-          output: '-'                    # 印到日誌
-          file-patterns: 'requirements:requirements.txt'
-          exit-code: '0'
+          format: table
+          output: '-'                      # 印在 log
+          hide-progress: true
+
+      # ③ 在 log 顯示找到幾個漏洞（從 SARIF 統計）
+      - name: Count vulnerabilities
+        run: |
+          COUNT=$(jq '.runs[0].results | length' trivy.sarif)
+          echo "Detected $COUNT vulnerabilities"
 
       - name: Upload SARIF to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: 'trivy.sarif'
+          sarif_file: trivy.sarif
