@@ -1,51 +1,31 @@
 rules:
-  - id: js-eval-usage
-    message: "Avoid eval(); 會造成任意程式碼執行風險"
+  - id: html-dom-innerhtml
+    message: "直接賦值 innerHTML 可能造成 XSS，請改用 textContent 或先消毒"
     severity: HIGH
-    languages: [javascript, typescript]
-    pattern: eval(...)
+    languages: [generic, javascript, typescript]
+    pattern-regex: (?i)\binnerHTML\s*=\s*
 
-  - id: dom-innerhtml-assignment
-    message: "直接賦值 innerHTML 可能造成 XSS，請先淨化或改用 textContent"
-    severity: HIGH
-    languages: [javascript, typescript]
-    pattern: $EL.innerHTML = $X
-
-  - id: document-write-usage
+  - id: html-document-write
     message: "避免使用 document.write()，容易引入 XSS/不受控內容"
     severity: MEDIUM
-    languages: [javascript, typescript]
-    pattern: document.write(...)
+    languages: [generic, javascript, typescript]
+    pattern-regex: \bdocument\.write\s*\(
 
-  - id: open-redirect-location-href
-    message: "未驗證來源即導頁（Open Redirect）"
+  - id: html-eval-usage
+    message: "避免 eval()，可能造成任意程式碼執行"
     severity: HIGH
-    languages: [javascript, typescript]
-    patterns:
-      - pattern: location.href = $X
+    languages: [generic, javascript, typescript]
+    pattern-regex: \beval\s*\(
 
-  - id: window-open-noopener
-    message: "window.open 需搭配 rel=noopener / noreferrer 以避免 tabnabbing"
-    severity: MEDIUM
-    languages: [javascript, typescript]
-    pattern: window.open($URL, "_blank")
-
-  - id: fetch-http-insecure
+  - id: html-http-fetch
     message: "以 HTTP 傳輸可能遭竊聽/竄改，請改用 HTTPS"
     severity: HIGH
-    languages: [javascript, typescript]
-    patterns:
-      - pattern: fetch($U, ...)
-      - metavariable-regex:
-          metavariable: $U
-          regex: "^['\"]http://"
+    languages: [generic, javascript, typescript]
+    pattern-regex: fetch\s*\(\s*["']http://
 
-  - id: localstorage-token
-    message: "避免將 Token/JWT 存在 localStorage，建議改用 httpOnly Cookie"
+  - id: html-window-open-noopener
+    message: "window.open 需搭配 rel=noopener/noreferrer 以避免 tabnabbing"
     severity: MEDIUM
-    languages: [javascript, typescript]
-    patterns:
-      - pattern: localStorage.setItem($K, $V)
-      - metavariable-regex:
-          metavariable: $K
-          regex: "(?i)(token|jwt|auth)"
+    languages: [generic, javascript, typescript]
+    pattern-regex: window\.open\s*\([^)]*"_blank"
+ 

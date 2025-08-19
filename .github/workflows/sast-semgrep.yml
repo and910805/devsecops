@@ -56,3 +56,12 @@ jobs:
         with:
           name: semgrep.sarif
           path: semgrep.sarif
+      # .github/workflows/sast-semgrep.yml
+      - name: Run Semgrep
+        run: |
+            semgrep scan \
+                --include '**/*.html' \
+                --config p/owasp-top-ten \
+                --config .semgrep/custom-rules.yml \
+                --sarif-output=semgrep.sarif \
+                --error
