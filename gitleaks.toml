@@ -1,0 +1,6 @@
+﻿title = "gitleaks config"
+
+[allowlist]
+description = "global allowlist to reduce noise"
+paths = ["package-lock.json","yarn.lock","docs/examples/","tests/fixtures/"]
+regexes = ["(?i)DUMMY_(API|SECRET|TOKEN)_KEY_[A-Z0-9]{8,}","(?i)example(_|-)password"]
